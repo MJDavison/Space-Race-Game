@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,19 +8,28 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     Rigidbody2D myRB;
+    [SerializeField] GameManager myGM;
     [SerializeField] internal float movementSpeed = 10f;
     internal float movementInput;
     [SerializeField] internal int playerID;
+    Vector2 startingPos;
     // Start is called before the first frame update
+
+    private void Awake() {
+         startingPos = transform.position;
+    }
     void Start()
     {
-        myRB = GetComponent<Rigidbody2D>();
-
+        myRB = GetComponent<Rigidbody2D>();       
+        //startingPos.position = transform.position; 
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        CheckInput();
+        CheckPlayerPosition();
         // if(playerID == 1){
         //     if(Input.GetKey(KeyCode.W)){
         //         movementInput = 1;
@@ -54,7 +64,17 @@ public class PlayerController : MonoBehaviour
         //     }           
         // }
 
-        if(playerID == 1){
+        
+
+        
+        // print(movementInput);
+
+        ApplyMovement(movementInput);
+    }    
+
+    private void CheckInput()
+    {
+       if(playerID == 1){
             if(Keyboard.current.wKey.isPressed){
                 movementInput = 1;
                 // print("W Pressed");
@@ -78,13 +98,29 @@ public class PlayerController : MonoBehaviour
                 movementInput = 0;
             }                                                        
         }
-
-        
-        // print(movementInput);
-
-        ApplyMovement(movementInput);
     }
+
     void ApplyMovement(float movementInput){
         myRB.velocity = Vector2.up * movementInput * movementSpeed;
+    }
+
+    private void CheckPlayerPosition()
+    {
+        if(transform.position.y >= 8.5f){
+            if(transform.name == "PlayerOne"){
+                myGM.PlayerOneScore = 1; //Increases player score by 1
+            } else{
+                myGM.PlayerTwoScore = 1;
+            }
+            transform.SetPositionAndRotation(startingPos, Quaternion.identity);
+        } else if(transform.position.y < 0){
+            transform.SetPositionAndRotation(startingPos, Quaternion.identity);
+            //print("That's a bit low mate.");
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D other) {
+        if(other.CompareTag("Asteroid")){
+            transform.SetPositionAndRotation(startingPos, Quaternion.identity);
+        }
     }
 }
